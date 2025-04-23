@@ -3,6 +3,7 @@ package com.example.learnical
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -44,24 +45,29 @@ class MainActivity : ComponentActivity() {
     }
 }
 interface LyricsApi {
-    @GET("/lyrics")
-    suspend fun getLyrics(@Query("song") songName: String): LyricsResponse
+    @GET("search?")
+    suspend fun getLyrics(@Query("song_name") songName: String): LyricsResponse
 }
 
 data class LyricsResponse(
-    val original: String,
-    val romaji: String,
-    val english: String
+    val songName: String,
+    val url: String,
+    val lyric: String
 )
 
 object ApiClient {
-    private const val BASE_URL = "https://your-backend.com" // <-- change to your real backend
+    private const val BASE_URL = ""
 
-    val api: LyricsApi = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(LyricsApi::class.java)
+    val api: LyricsApi = try {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(LyricsApi::class.java)
+    } catch (e: Exception) {
+        Log.e("ApiClient", "Retrofit init failed", e)
+        throw RuntimeException("Failed to initialize Retrofit")
+    }
 }
 
 // --- ViewModel ---
@@ -73,9 +79,13 @@ class LyricsViewModel : ViewModel() {
         viewModelScope.launch  {
             uiState = LyricsUiState.Loading
             try {
+                Log.e("ApiClient", "hithit")
+
                 val response = ApiClient.api.getLyrics(song)
+                //val response = LyricsResponse("日本語の歌詞", "Nihongo no kashi", "Japanese lyrics in English")
                 uiState = LyricsUiState.Success(response)
             } catch (e: Exception) {
+                Log.e("ApiClient", "Exception in API call: ${e.message}", e)
                 uiState = LyricsUiState.Error("Lyrics not found.")
             }
         }
@@ -118,16 +128,15 @@ fun LyricsScreen(viewModel: LyricsViewModel = viewModel()) {
 @Composable
 fun LyricsResult(data: LyricsResponse) {
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        Text("Japanese:")
-        Text(data.original)
-        Spacer(Modifier.height(8.dp))
 
-        Text("Romaji:")
-        Text(data.romaji)
-        Spacer(Modifier.height(8.dp))
+        Text("song name:")
+        Text(data.songName)
 
-        Text("English:")
-        Text(data.english)
+        Text("url:")
+        Text(data.url)
+
+        Text("Lyric:")
+        Text(data.lyric)
     }
 }
 
