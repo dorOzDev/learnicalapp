@@ -40,14 +40,13 @@ import com.spotify.protocol.types.Track
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
-
-
-
 // --- Entry Point ---
 class MainActivity : ComponentActivity() {
 
-    private val clientId = "92b89fdd9d854ab9a79b463a721af1c1"
-    private val redirectUri = "https://3c18-176-230-145-233.ngrok-free.app/api/callback"
+    private val baseBackendUrl = ""
+
+    private val clientId = BuildConfig.SPOTIFY_CLIENT_ID
+    private val redirectUri = "https://0dda-176-230-145-233.ngrok-free.app/api/callback"
     private var spotifyAppRemote: SpotifyAppRemote? = null
     private val requestCode = 1337
 
@@ -143,7 +142,6 @@ class MainActivity : ComponentActivity() {
 
             }
         }
-
     }
 
     override fun onStop() {
@@ -153,8 +151,8 @@ class MainActivity : ComponentActivity() {
         }
 
     }
-
 }
+
 interface LyricsApi {
     @GET("search?")
     suspend fun getLyrics(@Query("song_name") songName: String): LyricsResponse

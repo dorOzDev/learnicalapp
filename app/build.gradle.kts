@@ -1,7 +1,9 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -12,6 +14,7 @@ android {
         applicationId = "com.example.learnical"
         minSdk = 30
         targetSdk = 35
+        compileSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -36,6 +39,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+    secrets {
+        propertiesFileName = "secrets.properties"
     }
 }
 

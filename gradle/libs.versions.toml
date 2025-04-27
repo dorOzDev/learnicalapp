@@ -1,5 +1,6 @@
 [versions]
 agp = "8.9.2"
+secretsGradlePlugin = "2.0.1"
 spotifiyAuth = "1.2.5"
 converterGson = "2.9.0"
 gson = "2.10.1"
@@ -22,6 +23,7 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin", version.ref = "secretsGradlePlugin" }
 spotify-auth = { module = "com.spotify.android:auth", version.ref = "spotifiyAuth" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -46,4 +48,3 @@ ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
