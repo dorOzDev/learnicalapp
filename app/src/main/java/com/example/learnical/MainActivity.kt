@@ -1,5 +1,7 @@
 package com.example.learnical
 
+import android.app.ComponentCaller
+import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import android.os.Bundle
@@ -31,18 +33,127 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewModelScope
+import com.spotify.android.appremote.api.ConnectionParams
+import com.spotify.android.appremote.api.Connector
+import com.spotify.android.appremote.api.SpotifyAppRemote
+import com.spotify.protocol.types.Track
+import com.spotify.sdk.android.auth.AuthorizationClient
+import com.spotify.sdk.android.auth.AuthorizationRequest
+import com.spotify.sdk.android.auth.AuthorizationResponse
+
 
 
 // --- Entry Point ---
 class MainActivity : ComponentActivity() {
+
+    private val clientId = "92b89fdd9d854ab9a79b463a721af1c1"
+    private val redirectUri = "https://3c18-176-230-145-233.ngrok-free.app/api/callback"
+    private var spotifyAppRemote: SpotifyAppRemote? = null
+    private val requestCode = 1337
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                LyricsScreen()
+                LyricsScreen(mainActivity = this)
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        connectSpotifyRemote()
+    }
+
+    override fun onActivityResult(
+        requestCode: Int,
+        resultCode: Int,
+        data: Intent?,
+        caller: ComponentCaller) {
+        super.onActivityResult(requestCode, resultCode, data, caller)
+
+        if (requestCode == this.requestCode) {
+            var response = AuthorizationClient.getResponse(resultCode, intent)
+
+            when(response.type) {
+                AuthorizationResponse.Type.CODE -> connectSpotifyRemote()
+                AuthorizationResponse.Type.TOKEN -> connectSpotifyRemote()
+                AuthorizationResponse.Type.ERROR -> {}
+                AuthorizationResponse.Type.EMPTY -> {}
+                AuthorizationResponse.Type.UNKNOWN -> {}
+            }
+        }
+    }
+
+    private fun connectSpotifyRemote() {
+        val connectionParams = ConnectionParams.Builder(clientId)
+            .setRedirectUri(redirectUri)
+            .showAuthView(true)
+            .build()
+
+        SpotifyAppRemote.connect(this, connectionParams, object : Connector.ConnectionListener {
+            override fun onConnected(appRemote: SpotifyAppRemote) {
+                spotifyAppRemote = appRemote
+                Log.d("MainActivity", "Connected! Yay!")
+                // Now you can start interacting with App Remote
+                connected()
+            }
+
+            override fun onFailure(throwable: Throwable) {
+                Log.e("MainActivity", throwable.message, throwable)
+                // Something went wrong when attempting to connect! Handle errors here
+            }
+        })
+    }
+
+    fun authSpotify() {
+        var builder = AuthorizationRequest.Builder(clientId, AuthorizationResponse.Type.CODE, redirectUri);
+        builder.setScopes(arrayOf("streaming"))
+        var request = builder.build()
+
+        AuthorizationClient.openLoginActivity(this, requestCode, request)
+    }
+
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+
+        val uri = intent.data
+        val res = AuthorizationResponse.fromUri(uri)
+
+        when(res.type) {
+            AuthorizationResponse.Type.CODE -> connectSpotifyRemote()
+            AuthorizationResponse.Type.TOKEN -> TODO()
+            AuthorizationResponse.Type.ERROR -> TODO()
+            AuthorizationResponse.Type.EMPTY -> TODO()
+            AuthorizationResponse.Type.UNKNOWN -> TODO()
+        }
+        val code = uri?.getQueryParameter("code")
+        val error = uri?.getQueryParameter("error")
+    }
+
+    private fun connected() {
+        spotifyAppRemote?.let {
+            // Play a playlist
+            val playlistURI = "spotify:playlist:37i9dQZF1DX2sUQwD7tbmL"
+            it.playerApi.play(playlistURI)
+            // Subscribe to PlayerState
+            it.playerApi.subscribeToPlayerState().setEventCallback {
+                val track: Track = it.track
+                val name = track.name
+
+            }
+        }
+
+    }
+
+    override fun onStop() {
+        super.onStop()
+        spotifyAppRemote?.let {
+            SpotifyAppRemote.disconnect(it)
+        }
+
+    }
+
 }
 interface LyricsApi {
     @GET("search?")
@@ -101,7 +212,7 @@ sealed class LyricsUiState {
 
 // --- Composable UI ---
 @Composable
-fun LyricsScreen(viewModel: LyricsViewModel = viewModel()) {
+fun LyricsScreen(viewModel: LyricsViewModel = viewModel(), mainActivity: MainActivity) {
     var songName by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -114,6 +225,10 @@ fun LyricsScreen(viewModel: LyricsViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(8.dp))
         Button (onClick = { viewModel.searchLyrics(songName) }) {
             Text("Search")
+        }
+
+        Button(onClick = { mainActivity.authSpotify() }) {
+            Text("Auth Spotify")
         }
 
         when (val state = viewModel.uiState) {

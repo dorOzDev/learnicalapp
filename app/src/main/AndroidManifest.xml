@@ -22,6 +22,8 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
+                <data android:host="3c18-176-230-145-233.ngrok-free.app/api/callback" android:scheme="https" />
             </intent-filter>
         </activity>
     </application>
