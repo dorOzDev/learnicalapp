@@ -65,6 +65,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation (libs.gson)
 
-    implementation (libs.spotifyauth)
+    implementation (libs.spotify.auth)
 
 }
