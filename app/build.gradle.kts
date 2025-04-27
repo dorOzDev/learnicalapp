@@ -1,3 +1,5 @@
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -5,6 +7,17 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
+
+fun getLocalProperty(propertyName: String): String {
+    val properties = Properties()
+    val localPropertiesFile = project.rootProject.file("secrets.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(FileInputStream(localPropertiesFile))
+    }
+    return properties.getProperty(propertyName) ?: ""
+}
+
+val backEndHost = getLocalProperty("BACK_END_HOST")
 
 android {
     namespace = "com.example.learnical"
@@ -17,6 +30,7 @@ android {
         compileSdk = 35
         versionCode = 1
         versionName = "1.0"
+        manifestPlaceholders["backendHostPlaceholder"] = backEndHost
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
