@@ -8,11 +8,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import com.example.learnical.lyrics.ui.LyricsScreen
 import kotlinx.coroutines.launch
 import com.example.learnical.lyrics.presentation.LyricsViewModel
+import com.example.learnical.sever.ServerViewModel
 import com.example.learnical.spotify.SpotifyService
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
@@ -22,6 +25,8 @@ import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationResponse
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -31,6 +36,7 @@ class MainActivity : ComponentActivity() {
     private var spotifyAppRemote: SpotifyAppRemote? = null
     private val requestCode = 1337
     private val lyricsViewModel: LyricsViewModel by viewModels()
+    private val serverViewModel : ServerViewModel by viewModels()
 
     @Inject
     lateinit var spotifyService: SpotifyService
@@ -40,8 +46,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                LyricsScreen(lyricsViewModel) {
+                LyricsScreen(lyricsViewModel, serverViewModel) {
                     spotifyService.authorizeClient(this, clientId, redirectUri, requestCode)
+
+                    serverViewModel.viewModelScope.launch {
+                        repeatOnLifecycle(Lifecycle.State.STARTED) {
+                            while(isActive) {
+                                serverViewModel.fetchServerStatus()
+                                serverViewModel.serverStatus
+                                delay(2000)
+                            }
+                        }
+                    }
                     connectSpotifyRemote()
                 }
             }

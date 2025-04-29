@@ -23,6 +23,6 @@ class SpotifyServiceImpl @Inject constructor() : SpotifyService {
     }
 
     override fun onActivityResult(resultCode: Int, data: Intent?) {
-        TODO("Not yet implemented")
+
     }
 }
