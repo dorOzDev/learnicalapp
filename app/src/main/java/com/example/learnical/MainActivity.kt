@@ -27,6 +27,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -48,17 +52,20 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 LyricsScreen(lyricsViewModel, serverViewModel) {
                     spotifyService.authorizeClient(this, clientId, redirectUri, requestCode)
-
-                    serverViewModel.viewModelScope.launch {
-                        repeatOnLifecycle(Lifecycle.State.STARTED) {
-                            while(isActive) {
-                                serverViewModel.fetchServerStatus()
-                                serverViewModel.serverStatus
-                                delay(2000)
-                            }
-                        }
-                    }
                     connectSpotifyRemote()
+                }
+            }
+        }
+        checkForServerStatus(60000L)
+    }
+
+    private fun checkForServerStatus(millis: Long) {
+        serverViewModel.viewModelScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while(isActive) {
+                    serverViewModel.fetchServerStatus()
+                    serverViewModel.serverStatus
+                    delay(millis)
                 }
             }
         }
@@ -126,8 +133,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        spotifyAppRemote?.let {
-            SpotifyAppRemote.disconnect(it)
-        }
+        spotifyService.disconnetSpotify()
     }
 }

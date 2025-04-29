@@ -21,4 +21,9 @@ interface SpotifyService {
      * If succeed will attach a listener to the current spotify client
      * */
     fun onActivityResult(resultCode: Int, data: Intent?)
+
+    /**
+     * disconnet from spotify remote client
+     * */
+    fun disconnetSpotify()
 }
