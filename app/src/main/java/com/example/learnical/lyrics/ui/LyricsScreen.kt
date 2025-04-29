@@ -20,12 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.learnical.MainActivity
 import com.example.learnical.lyrics.presentation.LyricsUiState
 import com.example.learnical.lyrics.presentation.LyricsViewModel
 
 @Composable
-fun LyricsScreen(viewModel: LyricsViewModel, mainActivity: MainActivity) {
+fun LyricsScreen(viewModel: LyricsViewModel, onAuthSpotifyClicked: () -> Unit) {
     val uiState by viewModel.uiState.collectAsState()
     var songName by remember { mutableStateOf("") }
 
@@ -33,7 +32,7 @@ fun LyricsScreen(viewModel: LyricsViewModel, mainActivity: MainActivity) {
     Column(        modifier = Modifier
         .padding(16.dp)
         .fillMaxSize()) {
-        Button(onClick = { mainActivity.authSpotify() }) {
+        Button(onClick = { onAuthSpotifyClicked() }) {
             Text("Auth Spotify")
         }
     }

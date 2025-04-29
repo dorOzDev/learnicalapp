@@ -6,8 +6,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.learnical.lyrics.ui.LyricsScreen
 import kotlinx.coroutines.launch
 import com.example.learnical.lyrics.presentation.LyricsViewModel
@@ -17,7 +19,6 @@ import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.Track
 import com.spotify.sdk.android.auth.AuthorizationClient
-import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
     private val redirectUri = "${BuildConfig.BACK_END_URL}${BuildConfig.SPOTIFY_CALLBACK}"
     private var spotifyAppRemote: SpotifyAppRemote? = null
     private val requestCode = 1337
-    private lateinit var lyricsViewModel: LyricsViewModel
+    private val lyricsViewModel: LyricsViewModel by viewModels()
 
     @Inject
     lateinit var spotifyService: SpotifyService
@@ -37,10 +38,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        lyricsViewModel = LyricsViewModel()
         setContent {
             MaterialTheme {
-                LyricsScreen(lyricsViewModel, this)
+                LyricsScreen(lyricsViewModel) {
+                    spotifyService.authorizeClient(this, clientId, redirectUri, requestCode)
+                    connectSpotifyRemote()
+                }
             }
         }
     }
@@ -86,16 +89,6 @@ class MainActivity : ComponentActivity() {
                 Log.e("MainActivity", throwable.message, throwable)
             }
         })
-    }
-
-    fun authSpotify() {
-        var builder = AuthorizationRequest.Builder(clientId, AuthorizationResponse.Type.CODE, redirectUri);
-        builder.setScopes(arrayOf("streaming"))
-        var request = builder.build()
-
-        AuthorizationClient.openLoginActivity(this, requestCode, request)
-
-        connectSpotifyRemote()
     }
 
     private fun connected() {
