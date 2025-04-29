@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 
 fun getLocalProperty(propertyName: String): String {
@@ -85,7 +87,8 @@ dependencies {
     implementation(libs.androidx.material)
     implementation(libs.androidx.navigation.compose)
     implementation (libs.gson)
-
     implementation (libs.spotify.auth)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 
 }

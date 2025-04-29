@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.learnical.lyrics.ui.LyricsScreen
 import kotlinx.coroutines.launch
 import com.example.learnical.lyrics.presentation.LyricsViewModel
+import com.example.learnical.spotify.SpotifyService
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
@@ -18,7 +19,10 @@ import com.spotify.protocol.types.Track
 import com.spotify.sdk.android.auth.AuthorizationClient
 import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
+import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val clientId = BuildConfig.SPOTIFY_CLIENT_ID
@@ -26,6 +30,9 @@ class MainActivity : ComponentActivity() {
     private var spotifyAppRemote: SpotifyAppRemote? = null
     private val requestCode = 1337
     private lateinit var lyricsViewModel: LyricsViewModel
+
+    @Inject
+    lateinit var spotifyService: SpotifyService
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
