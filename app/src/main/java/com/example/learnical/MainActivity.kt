@@ -27,36 +27,39 @@ import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val clientId = BuildConfig.SPOTIFY_CLIENT_ID
-    private val redirectUri = "${BuildConfig.BACK_END_URL}${BuildConfig.SPOTIFY_CALLBACK}"
     private var spotifyAppRemote: SpotifyAppRemote? = null
     private val requestCode = 1337
     private val lyricsViewModel: LyricsViewModel by viewModels()
     private val serverViewModel : ServerViewModel by viewModels()
+    val spotifyClientId: String
+        get() = BuildConfig.SPOTIFY_CLIENT_ID
+
+    val redirectUri: String
+        get() = "${BuildConfig.BACK_END_URL}${BuildConfig.SPOTIFY_CALLBACK}"
 
     @Inject
     lateinit var spotifyService: SpotifyService
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
                 LyricsScreen(lyricsViewModel, serverViewModel) {
-                    spotifyService.authorizeClient(this, clientId, redirectUri, requestCode)
-                    connectSpotifyRemote()
+                    authorizeSpotify()
                 }
             }
         }
         checkForServerStatus(60000L)
+    }
+
+    private fun authorizeSpotify() {
+        spotifyService.authorizeClient(this, requestCode = requestCode)
+        connectSpotifyRemote()
     }
 
     private fun checkForServerStatus(millis: Long) {
@@ -73,6 +76,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        authorizeSpotify()
     }
 
     override fun onActivityResult(
@@ -83,20 +87,15 @@ class MainActivity : ComponentActivity() {
         super.onActivityResult(requestCode, resultCode, data, caller)
 
         if (requestCode == this.requestCode) {
-            var response = AuthorizationClient.getResponse(resultCode, intent)
-
-            when(response.type) {
-                AuthorizationResponse.Type.CODE -> connectSpotifyRemote()
-                AuthorizationResponse.Type.TOKEN -> connectSpotifyRemote()
-                AuthorizationResponse.Type.ERROR -> {}
-                AuthorizationResponse.Type.EMPTY -> {}
-                AuthorizationResponse.Type.UNKNOWN -> {}
+            val validateAuthorization = spotifyService.validateAuthorization(requestCode, data)
+            if(validateAuthorization) {
+                connectSpotifyRemote()
             }
         }
     }
 
     private fun connectSpotifyRemote() {
-        val connectionParams = ConnectionParams.Builder(clientId)
+        val connectionParams = ConnectionParams.Builder(spotifyClientId)
             .setRedirectUri(redirectUri)
             .showAuthView(true)
             .build()
@@ -116,8 +115,6 @@ class MainActivity : ComponentActivity() {
 
     private fun connected() {
         spotifyAppRemote?.let {
-            // Play a playlist
-            // Subscribe to PlayerState
             it.playerApi.subscribeToPlayerState().setEventCallback {
                 val track: Track = it.track
                 val trackName = track.name
@@ -125,7 +122,6 @@ class MainActivity : ComponentActivity() {
                 lifecycleScope.launch {
                     Log.d("MainActivity", "Getting lyrics for song: $trackName")
                     lyricsViewModel.onNewSong(trackName)
-
                 }
             }
         }

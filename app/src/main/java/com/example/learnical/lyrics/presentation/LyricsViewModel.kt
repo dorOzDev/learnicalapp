@@ -20,14 +20,16 @@ class LyricsViewModel @Inject constructor(private val lyricsRepository: LyricsRe
 
     fun onNewSong(song: String) {
         viewModelScope.launch {
-            _uiState.value = LyricsUiState.Loading
-            try {
-                val response = lyricsRepository.getLyrics(song)
-                _uiState.value = LyricsUiState.Success(response)
-                currentSong = song
-            } catch (e: Exception) {
-                Log.e("ApiClient", "Exception in API call: ${e.message}", e)
-                _uiState.value = LyricsUiState.Error("Lyrics not found.")
+            if(currentSong == null || currentSong != song) {
+                _uiState.value = LyricsUiState.Loading
+                try {
+                    val response = lyricsRepository.getLyrics(song)
+                    _uiState.value = LyricsUiState.Success(response)
+                    currentSong = song
+                } catch (e: Exception) {
+                    Log.e("ApiClient", "Exception in API call: ${e.message}", e)
+                    _uiState.value = LyricsUiState.Error("Lyrics not found for song $song.")
+                }
             }
         }
     }

@@ -23,7 +23,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <data android:host="4b8b-176-230-145-233.ngrok-free.app/api/callback" android:scheme="https" />
+                <data android:host="pig-subtle-lightly.ngrok-free.app/callback" android:scheme="https" />
             </intent-filter>
         </activity>
     </application>
