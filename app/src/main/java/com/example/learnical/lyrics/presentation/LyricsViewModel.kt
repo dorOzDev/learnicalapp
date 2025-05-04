@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @HiltViewModel
 class LyricsViewModel @Inject constructor(private val lyricsRepository: LyricsRepository) : ViewModel() {
@@ -26,9 +27,14 @@ class LyricsViewModel @Inject constructor(private val lyricsRepository: LyricsRe
                     val response = lyricsRepository.getLyrics(song)
                     _uiState.value = LyricsUiState.Success(response)
                     currentSong = song
-                } catch (e: Exception) {
+                } catch (e: HttpException) {
                     Log.e("ApiClient", "Exception in API call: ${e.message}", e)
-                    _uiState.value = LyricsUiState.Error("Lyrics not found for song $song.")
+                    if(e.response()?.code() == 404) {
+                        _uiState.value = LyricsUiState.Error("Lyrics not found for song $song.")
+                    } else {
+                        _uiState.value = LyricsUiState.Error("Unexpected error occurred.}")
+                        Log.e("ApiClient", "Exception in API call: ${e.message()}")
+                    }
                 }
             }
         }

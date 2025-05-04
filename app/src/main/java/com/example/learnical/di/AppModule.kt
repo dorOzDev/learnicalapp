@@ -1,7 +1,7 @@
 package com.example.learnical.di
 
 import com.example.learnical.spotify.SpotifyAuthorizationService
-import com.example.learnical.spotify.SpotifyAuthrizationServiceImpl
+import com.example.learnical.spotify.SpotifyAuthorizationServiceImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -12,6 +12,6 @@ import dagger.hilt.android.components.ActivityComponent
 abstract class AppModule {
 
     @Binds
-    abstract fun bindSpotifyService(spotifyServiceImpl: SpotifyAuthrizationServiceImpl): SpotifyAuthorizationService
+    abstract fun bindSpotifyService(spotifyServiceImpl: SpotifyAuthorizationServiceImpl): SpotifyAuthorizationService
 }
 

@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import com.example.learnical.lyrics.presentation.LyricsViewModel
 import com.example.learnical.sever.ServerViewModel
 import com.example.learnical.spotify.SpotifyAuthorizationService
+import com.example.learnical.spotify.SpotifyConstants
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
@@ -34,11 +35,6 @@ class MainActivity : ComponentActivity() {
     private val requestCode = 1337
     private val lyricsViewModel: LyricsViewModel by viewModels()
     private val serverViewModel : ServerViewModel by viewModels()
-    val spotifyClientId: String
-        get() = BuildConfig.SPOTIFY_CLIENT_ID
-
-    val redirectUri: String
-        get() = "${BuildConfig.BACK_END_URL}${BuildConfig.SPOTIFY_CALLBACK}"
 
     @Inject
     lateinit var spotifyAuthorizationService: SpotifyAuthorizationService
@@ -93,8 +89,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun connectSpotifyRemote() {
-        val connectionParams = ConnectionParams.Builder(spotifyClientId)
-            .setRedirectUri(redirectUri)
+        val connectionParams = ConnectionParams.Builder(SpotifyConstants.spotifyClientId)
+            .setRedirectUri(SpotifyConstants.redirectUri)
             .showAuthView(true)
             .build()
 
