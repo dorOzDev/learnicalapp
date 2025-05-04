@@ -5,7 +5,7 @@ import android.content.Intent
 import com.example.learnical.BuildConfig
 import com.spotify.android.appremote.api.SpotifyAppRemote
 
-interface SpotifyService {
+interface SpotifyAuthorizationService {
 
     val spotifyClientId: String
         get() = BuildConfig.SPOTIFY_CLIENT_ID
@@ -33,11 +33,4 @@ interface SpotifyService {
      * @return true if the user authorized the app, false otherwise
      * */
     fun validateAuthorization(resultCode: Int, data: Intent?) : Boolean
-
-    /**
-     * disconnet from spotify remote client
-     * */
-    fun disconnetSpotify()
-
-    fun provideSpotifyAppRemote() : SpotifyAppRemote?
 }

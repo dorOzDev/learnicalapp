@@ -16,13 +16,11 @@ import com.example.learnical.lyrics.ui.LyricsScreen
 import kotlinx.coroutines.launch
 import com.example.learnical.lyrics.presentation.LyricsViewModel
 import com.example.learnical.sever.ServerViewModel
-import com.example.learnical.spotify.SpotifyService
+import com.example.learnical.spotify.SpotifyAuthorizationService
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.types.Track
-import com.spotify.sdk.android.auth.AuthorizationClient
-import com.spotify.sdk.android.auth.AuthorizationResponse
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.coroutines.delay
@@ -43,7 +41,7 @@ class MainActivity : ComponentActivity() {
         get() = "${BuildConfig.BACK_END_URL}${BuildConfig.SPOTIFY_CALLBACK}"
 
     @Inject
-    lateinit var spotifyService: SpotifyService
+    lateinit var spotifyAuthorizationService: SpotifyAuthorizationService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +56,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun authorizeSpotify() {
-        spotifyService.authorizeClient(this, requestCode = requestCode)
+        spotifyAuthorizationService.authorizeClient(this, requestCode = requestCode)
         connectSpotifyRemote()
     }
 
@@ -87,7 +85,7 @@ class MainActivity : ComponentActivity() {
         super.onActivityResult(requestCode, resultCode, data, caller)
 
         if (requestCode == this.requestCode) {
-            val validateAuthorization = spotifyService.validateAuthorization(requestCode, data)
+            val validateAuthorization = spotifyAuthorizationService.validateAuthorization(requestCode, data)
             if(validateAuthorization) {
                 connectSpotifyRemote()
             }
@@ -104,7 +102,7 @@ class MainActivity : ComponentActivity() {
             override fun onConnected(appRemote: SpotifyAppRemote) {
                 spotifyAppRemote = appRemote
                 Log.d("MainActivity", "Connected! Yay!")
-                connected()
+                subscribeToTrackPlayedCallback()
             }
 
             override fun onFailure(throwable: Throwable) {
@@ -113,7 +111,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-    private fun connected() {
+    private fun subscribeToTrackPlayedCallback() {
         spotifyAppRemote?.let {
             it.playerApi.subscribeToPlayerState().setEventCallback {
                 val track: Track = it.track
@@ -129,6 +127,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
-        spotifyService.disconnetSpotify()
+        spotifyAppRemote?.let {
+            SpotifyAppRemote.disconnect(it)
+        }
     }
 }

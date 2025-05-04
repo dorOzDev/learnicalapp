@@ -12,7 +12,7 @@ import com.spotify.sdk.android.auth.AuthorizationRequest
 import com.spotify.sdk.android.auth.AuthorizationResponse
 import jakarta.inject.Inject
 
-class SpotifyServiceImpl @Inject constructor() : SpotifyService {
+class SpotifyAuthrizationServiceImpl @Inject constructor() : SpotifyAuthorizationService {
 
     private var spotifyAppRemote: SpotifyAppRemote? = null
 
@@ -63,19 +63,5 @@ class SpotifyServiceImpl @Inject constructor() : SpotifyService {
                 Log.e("MainActivity", throwable.message, throwable)
             }
         })
-    }
-
-    override fun disconnetSpotify() {
-        spotifyAppRemote?.let {
-            SpotifyAppRemote.disconnect(it)
-        }
-    }
-
-    override fun provideSpotifyAppRemote(): SpotifyAppRemote? {
-      if(spotifyAppRemote == null) {
-
-      }
-
-        return spotifyAppRemote
     }
 }
